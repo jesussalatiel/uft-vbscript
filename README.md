@@ -14,6 +14,7 @@ UFT can be used to automate testing of the following types of applications:
 - Flex
 - Oracle
 - SAP
+- Salesforce
 - PeopleSoft
 - Siebel
 - Delphi
@@ -174,6 +175,102 @@ End If
 ```
 
 </details>
+
+### AOM (Automation Object Model)
+
+It is an interface COM expose to UFT allows control UFT with external scripts, examples: VBScript, Poweshell or Python using pywin32.
+
+```py
+import win32com.client
+import time
+
+# Crear el objeto de UFT
+qtApp = win32com.client.Dispatch("QuickTest.Application")
+
+# Iniciar UFT si no está abierto
+if not qtApp.Launched:
+    qtApp.Launch()
+    time.sleep(5)  # espera que termine de cargar
+
+# Mostrar UFT (opcional)
+qtApp.Visible = True
+
+# Abrir una prueba existente
+test_path = r"C:\Tests\LoginTest"
+qtApp.Open(test_path, True)
+
+# Ejecutar la prueba
+qtApp.Test.Run()
+
+# Esperar que termine
+while qtApp.Test.IsRunning:
+    time.sleep(1)
+
+# Obtener resultados
+results = qtApp.Test.LastRunResults
+print("Test Result: ", results.Status)
+
+# Cerrar la prueba y UFT
+qtApp.Test.Close()
+qtApp.Quit()
+
+# Liberar objeto
+del qtApp
+```
+
+### Export multiple files
+
+```vb
+ExecuteFile "lib\Logger.vbs"
+ExecuteFile "utils\Validator.vbs"
+ExecuteFile "factories\BrowserFactory.vbs"
+```
+
+### 📁 Organize Your Project by Responsibility
+
+```bash
+/tests           → Test cases
+/utils           → Shared validation and helper functions
+/factories       → BrowserFactory, DeviceFactory, etc.
+/data            → External files (CSV, Excel)
+```
+
+### Use SetSecure for Sensitive Data
+
+Never hardcode passwords in plain text:
+
+```vb
+Browser("App").Page("Login").WebEdit("password").SetSecure "MyEncryptedPassword"
+```
+
+### Check for Object Existence Before Interacting
+
+Prevent failures by validating objects before using them:
+
+```vb
+If Browser("App").Page("Login").WebEdit("Username").Exist(5) Then
+    Browser("App").Page("Login").WebEdit("Username").Set "admin"
+End If
+```
+
+### 🧪 Use Reporter.ReportEvent for Custom Reporting
+
+Make your test results readable:
+
+```vb
+Reporter.ReportEvent micPass, "Login Test", "Login successful"
+Reporter.ReportEvent micFail, "Login Test", "Login failed"
+```
+
+### Use Dictionaries to Simulate Objects
+
+VBScript doesn’t support real objects, but you can use dictionaries:
+
+```vb
+Set user = CreateObject("Scripting.Dictionary")
+user.Add "username", "john"
+user.Add "password", "12345678"
+```
 
 ## References
 
