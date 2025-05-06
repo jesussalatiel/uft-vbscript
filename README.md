@@ -1,277 +1,195 @@
-# Unified Functional Testing (UFT)
+# Salesforce Automation Framework with UFT
 
-## What is UFT?
+This framework provides automated testing capabilities for Salesforce web applications using UFT (Unified Functional Testing). It includes both UI automation and API testing functionalities.
 
-**Unified Functional Testing (UFT)** is an automated software testing tool used to test a wide range of applications and environments, including web, desktop, mobile, and API-based applications.
+## Features
 
-## Supported Technologies
+- **Salesforce UI Automation**:
 
-UFT can be used to automate testing of the following types of applications:
+  - Login functionality
+  - Navigation through different sections
+  - Contact creation workflow
+  - Robust element identification and interaction
 
-- Web
-- Java
-- .NET
-- Flex
-- Oracle
-- SAP
-- Salesforce
-- PeopleSoft
-- Siebel
-- Delphi
-- Terminal Emulators
-- PowerBuilder
-- Stingray
-- VisualAge
-- QT
+- **API Testing**:
 
-## Scripting Language
+  - REST API call capabilities
+  - Response validation
+  - Error handling
 
-- **VBScript**
+- **Test Data Management**:
 
-## Supported Browsers
+  - Excel-based test data loading
+  - Data validation
+  - Parameterized testing
 
-- Chrome
-- Firefox
-- Safari
-- Internet Explorer
+- **Reporting**:
 
-## Execution Environments
+  - Detailed test execution reports
+  - Failure/warning/info classification
+  - Visual indicators in reports
 
-- Windows
-- Linux
-- macOS
+## Prerequisites
 
-## Common Object State Properties
+### Software Requirements
 
-Below are commonly used properties in UFT along with examples of how they can be accessed or verified using VBScript.
+1. **Micro Focus UFT** (version 14.x or higher)
+2. **Microsoft Edge** browser (or configure for your preferred browser)
+3. **Microsoft Excel** (for test data management)
 
-| Property           | Object Type(s)         | Description                                             | Example (VBScript)                                                                            |
-| ------------------ | ---------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `Exist`            | Any                    | Indicates if the object exists on the page/UI           | `If Browser("MyApp").Page("Home").WebButton("Login").Exist(5) Then`                           |
-| `Visible`          | WebElement, WebEdit    | Indicates if the object is visible to the user          | `isVisible = Browser("MyApp").Page("Home").WebEdit("Search").GetROProperty("visible")`        |
-| `Disabled`         | WebButton, WebEdit     | Indicates whether the object is disabled (`true/false`) | `isDisabled = Browser("MyApp").Page("Home").WebButton("Submit").GetROProperty("disabled")`    |
-| `Value`            | Inputs, dropdowns      | The current value of the control                        | `inputValue = Browser("MyApp").Page("Home").WebEdit("Email").GetROProperty("value")`          |
-| `Checked`          | Checkbox, radio button | Whether the control is checked (`true/false`)           | `isChecked = Browser("MyApp").Page("Home").WebCheckBox("Subscribe").GetROProperty("checked")` |
-| `Selected`         | Lists, combo boxes     | Whether an option is selected                           | `isSelected = Browser("MyApp").Page("Home").WebList("Country").GetROProperty("selected")`     |
-| `Class`            | WebElement             | CSS class (useful for detecting visual states)          | `cssClass = Browser("MyApp").Page("Home").WebElement("Banner").GetROProperty("class")`        |
-| `Status`           | Browser, Page          | Indicates if the page has fully loaded                  | `status = Browser("MyApp").GetROProperty("status")`                                           |
-| `Enabled`          | Windows apps           | Indicates if the control is enabled                     | `isEnabled = Window("MyApp").WinEdit("Username").GetROProperty("enabled")`                    |
-| `Text / innerText` | Labels, buttons        | The text displayed to the user                          | `textValue = Browser("MyApp").Page("Home").WebElement("Message").GetROProperty("innertext")`  |
-| `Focused`          | WebElement             | Whether the control currently has focus                 | `hasFocus = Browser("MyApp").Page("Home").WebEdit("Password").GetROProperty("focused")`       |
+### Environment Setup
 
-## Advanced Examples
+1. Create an `Environment` file with these variables:
 
-### <a name="mobile-example"></a>
+   1. SALESFORCE_URL = [Your Salesforce instance URL]
+   2. RICKANDMORTY_API = [Rick and Morty API endpoint]
+   3. TestDir = [Path to your test data directory]
 
-<details>
-<summary>Click to expand</summary>
+2. Prepare test data Excel file (`Default.xlsx`) with these sheets/columns:
 
-### Mobile App Testing (UFT Mobile / Mobile Center)
+- **Global** sheet with columns:
+  - `salutation`
+  - `lastName`
+  - `phone`
 
-```vb
-' Test login functionality on a mobile banking app
-Set device = MobileDevice("MyAndroid")
-device.LaunchApp "com.bank.app"
+## Framework Structure
 
-' Wait for the login screen
-If device.App("com.bank.app").MobileEdit("username").Exist(10) Then
-    ' Fill in credentials
-    device.App("com.bank.app").MobileEdit("username").Set "john.doe"
-    device.App("com.bank.app").MobileEdit("password").SetSecure "MyEncryptedPassword"
+📦 framework
+├── 📜 Main.vbs - Core automation classes
+├── 📜 Tests.vbs - Test cases
+├── 📂 test-data
+│ └── 📜 Default.xlsx - Test data
+└── 📂 environment
+└── 📜 config.ini - Environment variables
 
-    ' Click login
-    device.App("com.bank.app").MobileButton("login_button").Tap
+## How to Use
 
-    ' Validate if home screen is displayed
-    If device.App("com.bank.app").MobileText("welcome_message").Exist(15) Then
-        Reporter.ReportEvent micPass, "Login Test", "Login successful, home screen displayed"
-    Else
-        Reporter.ReportEvent micFail, "Login Test", "Home screen not loaded"
-    End If
-Else
-    Reporter.ReportEvent micFail, "Login Screen", "Username field not found"
-End If
+### 1. Running Tests
+
+Execute the test scripts from UFT:
+
+```vbs
+Call Test_Salesforce_Login_And_Contact_Creation()
+Call Test_RickAndMorty_API_Endpoint()
 ```
 
-### 🔌 API Testing (via UFT API / Service Test)
+### 2. Main Components
 
-```vb
-' Create a user via POST and validate using GET
-Set createUser = CreateObject("HP.ST.Fwk.RunTimeObjects.RESTActivity")
-createUser.Endpoint = "https://api.example.com/users"
-createUser.Method = "POST"
-createUser.Body = "{""name"": ""John"", ""email"": ""john@example.com""}"
-createUser.ContentType = "application/json"
-createUser.Send
+#### SalesforceAutomation Class
 
-If createUser.StatusCode = 201 Then
-    Reporter.ReportEvent micPass, "User Creation", "User created successfully"
+- `TestSetup()` - Initializes browser and test environment
+- `LoginToSalesforce(username, password)` - Performs login
+- `NavigateToAppSection(sectionName)` - Navigates to specified section
+- `CreateNewContactRecord(phone, salutation, lastName)` - Creates new contact
+- `ExecuteApiRequest(url, method, body)` - Makes API calls
 
-    ' Extract user ID from response
-    Dim userId
-    userId = ExtractUserId(createUser.ResponseBody)
+#### Test Data Management
 
-    ' Fetch the user
-    Set getUser = CreateObject("HP.ST.Fwk.RunTimeObjects.RESTActivity")
-    getUser.Endpoint = "https://api.example.com/users/" & userId
-    getUser.Method = "GET"
-    getUser.Send
-
-    If InStr(getUser.ResponseBody, """email"":""john@example.com""") > 0 Then
-        Reporter.ReportEvent micPass, "User Verification", "User data matches"
-    Else
-        Reporter.ReportEvent micFail, "User Verification", "User data mismatch"
-    End If
-Else
-    Reporter.ReportEvent micFail, "User Creation", "Failed with status " & createUser.StatusCode
-End If
-
-Function ExtractUserId(response)
-    ' Dummy example: simple extraction using RegExp
-    Dim regEx, matches
-    Set regEx = New RegExp
-    regEx.Pattern = """id"":\s*(\d+)"
-    regEx.Global = False
-    regEx.IgnoreCase = True
-
-    Set matches = regEx.Execute(response)
-    If matches.Count > 0 Then
-        ExtractUserId = matches(0).SubMatches(0)
-    Else
-        ExtractUserId = ""
-    End If
-End Function
+```vbs
+Set testData = LoadTestDataFromExcel(filePath, columnsArray, sheetName)
 ```
 
-### Desktop App Testing (Windows-based apps)
+### 3. Customizing Tests
 
-```vb
-' End-to-end test of login + report generation in a desktop app
-If Window("AccountingApp").Exist(10) Then
-    Window("AccountingApp").WinEdit("Username").Set "admin"
-    Window("AccountingApp").WinEdit("Password").SetSecure "EncryptedPwd"
-    Window("AccountingApp").WinButton("Login").Click
+**To add new UI flows** :
 
-    ' Wait for main screen
-    If Window("AccountingApp").WinMenu("MainMenu").Exist(15) Then
-        Window("AccountingApp").WinMenu("MainMenu").Select "Reports;Generate Monthly Report"
+1. Add new element descriptors in `InitializeUIElements()`
+2. Create new interaction methods following existing patterns
 
-        ' Set parameters
-        Window("AccountingApp").WinComboBox("Month").Select "March"
-        Window("AccountingApp").WinButton("Generate").Click
+**To add new API tests** :
 
-        ' Validate report generation
-        If Window("AccountingApp").WinStatic("ReportStatus").GetROProperty("text") = "Report Generated Successfully" Then
-            Reporter.ReportEvent micPass, "Report Generation", "Report created correctly"
-        Else
-            Reporter.ReportEvent micFail, "Report Generation", "Report creation failed"
-        End If
-    Else
-        Reporter.ReportEvent micFail, "Main Menu", "Main screen not displayed after login"
-    End If
-Else
-    Reporter.ReportEvent micFail, "App Launch", "Application not found"
-End If
+```vbs
+Dim apiResponse
+Set apiResponse = salesforceAutomation.ExecuteApiRequest(url, "GET|POST|PUT|DELETE", body)
 ```
 
-</details>
+## Best Practices
 
-### AOM (Automation Object Model)
+1. **For UI Tests** :
 
-It is an interface COM expose to UFT allows control UFT with external scripts, examples: VBScript, Poweshell or Python using pywin32.
+- Always use the element interaction methods (`SetFieldValueWithValidation`, `ClickElementWithValidation`)
+- Maintain element descriptors in the repository section
+- Keep page transitions validated
 
-```py
-import win32com.client
-import time
+1. **For API Tests** :
 
-# Crear el objeto de UFT
-qtApp = win32com.client.Dispatch("QuickTest.Application")
+- Validate status codes
+- Process responses consistently
+- Handle errors gracefully
 
-# Iniciar UFT si no está abierto
-if not qtApp.Launched:
-    qtApp.Launch()
-    time.sleep(5)  # espera que termine de cargar
+1. **For Test Data** :
 
-# Mostrar UFT (opcional)
-qtApp.Visible = True
+- Keep test data separate from scripts
+- Validate required columns before test execution
+- Use descriptive names for parameters
 
-# Abrir una prueba existente
-test_path = r"C:\Tests\LoginTest"
-qtApp.Open(test_path, True)
+## Troubleshooting
 
-# Ejecutar la prueba
-qtApp.Test.Run()
+| Issue             | Solution                                    |
+| ----------------- | ------------------------------------------- |
+| Element not found | Check element descriptors and wait times    |
+| Login failures    | Verify credentials and Salesforce URL       |
+| API call errors   | Check endpoint URL and network connectivity |
+| Test data issues  | Validate Excel file structure and content   |
 
-# Esperar que termine
-while qtApp.Test.IsRunning:
-    time.sleep(1)
+```vbs
+' Test: Create contact with data from Excel
+Sub Test_Create_Contact_With_Test_Data()
+Dim salesforce, testData
 
-# Obtener resultados
-results = qtApp.Test.LastRunResults
-print("Test Result: ", results.Status)
+    Set salesforce = New SalesforceAutomation
+    salesforce.TestSetup
 
-# Cerrar la prueba y UFT
-qtApp.Test.Close()
-qtApp.Quit()
+    ' Login
+    salesforce.LoginToSalesforce "user@company.com", "securePassword"
 
-# Liberar objeto
-del qtApp
+    ' Load test data
+    Set testData = LoadTestDataFromExcel(Environment.Value("TestDir") & "\Contacts.xlsx", _
+                    Array("salutation", "lastName", "phone"), "TestCases")
+
+    ' Execute test
+    salesforce.NavigateToAppSection "Contacts"
+    salesforce.CreateNewContactRecord testData("phone")(0), testData("salutation")(0), testData("lastName")(0)
+
+    salesforce.TestCleanup
+
+End Sub
 ```
 
-### Export multiple files
+## Maintenance
 
-```vb
-ExecuteFile "lib\Logger.vbs"
-ExecuteFile "utils\Validator.vbs"
-ExecuteFile "factories\BrowserFactory.vbs"
-```
+1. **For UI Changes** :
 
-### 📁 Organize Your Project by Responsibility
+- Update element descriptors when UI changes
+- Review and adjust wait times as needed
 
-```bash
-/tests           → Test cases
-/utils           → Shared validation and helper functions
-/factories       → BrowserFactory, DeviceFactory, etc.
-/data            → External files (CSV, Excel)
-```
+1. **For New Features** :
 
-### Use SetSecure for Sensitive Data
+- Extend the framework with new methods
+- Maintain consistent patterns
 
-Never hardcode passwords in plain text:
+1. **Regular Checks** :
 
-```vb
-Browser("App").Page("Login").WebEdit("password").SetSecure "MyEncryptedPassword"
-```
+- Verify environment variables
+- Validate test data files
+- Review test reports for flaky tests
 
-### Check for Object Existence Before Interacting
+## Contributors
 
-Prevent failures by validating objects before using them:
+- [Jesus Bustamante]
 
-```vb
-If Browser("App").Page("Login").WebEdit("Username").Exist(5) Then
-    Browser("App").Page("Login").WebEdit("Username").Set "admin"
-End If
-```
+This README provides comprehensive documentation covering:
 
-### 🧪 Use Reporter.ReportEvent for Custom Reporting
+1. Framework capabilities
+2. Setup requirements
+3. Usage instructions
+4. Best practices
+5. Troubleshooting
+6. Maintenance guidelines
 
-Make your test results readable:
+The document is structured to help new users get started quickly while providing enough detail for advanced customization. You may want to:
 
-```vb
-Reporter.ReportEvent micPass, "Login Test", "Login successful"
-Reporter.ReportEvent micFail, "Login Test", "Login failed"
-```
-
-### Use Dictionaries to Simulate Objects
-
-VBScript doesn’t support real objects, but you can use dictionaries:
-
-```vb
-Set user = CreateObject("Scripting.Dictionary")
-user.Add "username", "john"
-user.Add "password", "12345678"
-```
-
-## References
-
-- [Guru99 UFT/QTP Tutorial](https://www.guru99.com/quick-test-professional-qtp-tutorial.html)
+- Add specific version requirements
+- Include screenshots of sample reports
+- Add your team's specific coding standards
+- Include any CI/CD integration details if applicable
