@@ -1,0 +1,18 @@
+<Environment>
+	<Variable>
+		<Name>DEFAULT_WAIT_TIME</Name>
+		<Value><![CDATA[10]]></Value>
+	</Variable>
+	<Variable>
+		<Name>PAGE_LOAD_WAIT_TIME</Name>
+		<Value><![CDATA[10]]></Value>
+	</Variable>
+	<Variable>
+		<Name>RICKANDMORTY_API</Name>
+		<Value><![CDATA[https://rickandmortyapi.com/api/character]]></Value>
+	</Variable>
+	<Variable>
+		<Name>SALESFORCE_URL</Name>
+		<Value><![CDATA[https://globanttesting-dev-ed.develop.lightning.force.com/lightning]]></Value>
+	</Variable>
+</Environment>

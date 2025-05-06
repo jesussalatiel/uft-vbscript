@@ -1,269 +1,326 @@
-﻿' Variables read from the Environment file for better maintainability
-Dim SALESFORCE_URL, RICKANDMORTY_API, PAGE_LOAD_WAIT_TIME, DEFAULT_WAIT_TIME
-SALESFORCE_URL = Environment.Value("SALESFORCE_URL")
-RICKANDMORTY_API = Environment.Value("RICKANDMORTY_API")
-PAGE_LOAD_WAIT_TIME = 5
-DEFAULT_WAIT_TIME = 5
+﻿' ==============================================
+' Environment Configuration - Centralized settings
+' ==============================================
+Dim SALESFORCE_BASE_URL, RICKANDMORTY_API_ENDPOINT, PAGE_LOAD_TIMEOUT, ELEMENT_WAIT_TIMEOUT
+SALESFORCE_BASE_URL = Environment.Value("SALESFORCE_URL")
+RICKANDMORTY_API_ENDPOINT = Environment.Value("RICKANDMORTY_API")
+PAGE_LOAD_TIMEOUT = Environment.Value("PAGE_LOAD_WAIT_TIME")
+ELEMENT_WAIT_TIMEOUT = Environment.Value("DEFAULT_WAIT_TIME")
 
-' Main Salesforce automation class
-Class Salesforce
-    ' Object repository - using descriptive names
-    Private oUsernameField, oPasswordField, oLoginButton, oPhoneField
-    Private oBrowserDescriptor, oPageDescriptor
-    Private browserTitlePattern
-
-    ' Initialize all object descriptions
-    Public Sub Initialize()
-        Set oUsernameField = CreateWebElement("WebEdit", "html id", "username")
-        Set oPasswordField = CreateWebElement("WebEdit", "html id", "password")
-        Set oLoginButton = CreateWebElement("WebButton", "html id", "Login")
-        Set oPhoneField = CreateWebElement("WebEdit", "name", "Phone")
-
-        Set oBrowserDescriptor = CreateBrowserDescriptor(".*")
-        Set oPageDescriptor = CreatePageDescriptor(".*Salesforce.*")
+' ==============================================
+' Main Salesforce Automation Class
+' ==============================================
+Class SalesforceAutomation
+    ' UI Element Repository - Descriptive names
+    Private loginUsernameField, loginPasswordField, loginSubmitButton, contactPhoneField
+    Private browserDescriptor, salesforcePageDescriptor
+    
+    ' ==============================================
+    ' Initialization Methods
+    ' ==============================================
+    
+    ' Initialize all UI element descriptors
+    Public Sub InitializeUIElements()
+        Set loginUsernameField = CreateWebElementDescriptor("WebEdit", "html id", "username")
+        Set loginPasswordField = CreateWebElementDescriptor("WebEdit", "html id", "password")
+        Set loginSubmitButton = CreateWebElementDescriptor("WebButton", "html id", "Login")
+        Set contactPhoneField = CreateWebElementDescriptor("WebEdit", "name", "Phone")
+        
+        Set browserDescriptor = CreateBrowserDescriptor(".*")
+        Set salesforcePageDescriptor = CreatePageDescriptor(".*Salesforce.*")
     End Sub
-
-    ' Helper method to create web elements
-    Private Function CreateWebElement(elementClass, attributeName, attributeValue)
-        Dim elementDesc
-        Set elementDesc = Description.Create()
-        elementDesc("micclass").Value = elementClass
-        elementDesc(attributeName).Value = attributeValue
-        Set CreateWebElement = elementDesc
-    End Function
-
-    ' Helper method to create browser descriptor
-    Private Function CreateBrowserDescriptor(namePattern)
-        Dim browserDesc
-        Set browserDesc = Description.Create()
-        browserDesc("micclass").Value = "Browser"
-        browserDesc("name").Value = namePattern
-        Set CreateBrowserDescriptor = browserDesc
-    End Function
-
-    ' Helper method to create page descriptor
-    Private Function CreatePageDescriptor(titlePattern)
-        Dim pageDesc
-        Set pageDesc = Description.Create()
-        pageDesc("micclass").Value = "Page"
-        pageDesc("title").Value = titlePattern
-        Set CreatePageDescriptor = pageDesc
-    End Function
-
-    ' Test setup
-    Public Sub BeforeTest()
-        Initialize
-        CloseBrowser
-        LaunchBrowser SALESFORCE_URL
-        browserTitlePattern = ".*Salesforce.*"
-
-        If Not IsElementVisible(oUsernameField, PAGE_LOAD_WAIT_TIME) Then
-            ReportFailure "Page Load", "Username field not found within " & PAGE_LOAD_WAIT_TIME & " seconds"
+    
+    ' ==============================================
+    ' Test Lifecycle Methods
+    ' ==============================================
+    
+    ' Setup before each test
+    Public Sub TestSetup()
+        InitializeUIElements
+        CloseAllBrowserInstances
+        LaunchBrowserWithURL SALESFORCE_BASE_URL
+        
+        If Not IsElementVisible(loginUsernameField, PAGE_LOAD_TIMEOUT) Then
+            ReportTestFailure "Login Page Load", "Username field not visible after " & PAGE_LOAD_TIMEOUT & " seconds"
         End If
     End Sub
-
-    ' Test teardown
-    Public Sub AfterTest()
-        CloseBrowser
+    
+    ' Cleanup after each test
+    Public Sub TestCleanup()
+        CloseAllBrowserInstances
     End Sub
-
-    ' Browser operations
-    Private Sub CloseBrowser()
+    
+    ' ==============================================
+    ' Browser Operations
+    ' ==============================================
+    
+    Private Sub CloseAllBrowserInstances()
         SystemUtil.CloseProcessByName "msedge.exe"
     End Sub
-
-    Private Sub LaunchBrowser(url)
+    
+    Private Sub LaunchBrowserWithURL(url)
         SystemUtil.Run "msedge.exe", url
     End Sub
-
-    ' Element interaction methods
-    Private Function IsElementVisible(elementDesc, timeout)
-        IsElementVisible = Browser(oBrowserDescriptor).Page(oPageDescriptor).WebEdit(elementDesc).Exist(timeout)
+    
+    ' ==============================================
+    ' Element Interaction Utilities
+    ' ==============================================
+    
+    Private Function CreateWebElementDescriptor(elementType, attributeName, attributeValue)
+        Dim elementDescription
+        Set elementDescription = Description.Create()
+        elementDescription("micclass").Value = elementType
+        elementDescription(attributeName).Value = attributeValue
+        Set CreateWebElementDescriptor = elementDescription
     End Function
-
-    Private Sub SetFieldIfExists(elementDesc, value, fieldName)
-        If IsElementVisible(elementDesc, DEFAULT_WAIT_TIME) Then
-            Browser(oBrowserDescriptor).Page(oPageDescriptor).WebEdit(elementDesc).Set value
+    
+    Private Function CreateBrowserDescriptor(namePattern)
+        Dim browserDescription
+        Set browserDescription = Description.Create()
+        browserDescription("micclass").Value = "Browser"
+        browserDescription("name").Value = namePattern
+        Set CreateBrowserDescriptor = browserDescription
+    End Function
+    
+    Private Function CreatePageDescriptor(titlePattern)
+        Dim pageDescription
+        Set pageDescription = Description.Create()
+        pageDescription("micclass").Value = "Page"
+        pageDescription("title").Value = titlePattern
+        Set CreatePageDescriptor = pageDescription
+    End Function
+    
+    Private Function IsElementVisible(elementDescriptor, timeoutSeconds)
+        IsElementVisible = Browser(browserDescriptor).Page(salesforcePageDescriptor).WebEdit(elementDescriptor).Exist(timeoutSeconds)
+    End Function
+    
+    Private Sub SetFieldValueWithValidation(elementDescriptor, value, fieldName)
+        If IsElementVisible(elementDescriptor, ELEMENT_WAIT_TIMEOUT) Then
+            Browser(browserDescriptor).Page(salesforcePageDescriptor).WebEdit(elementDescriptor).Set value
         Else
-            ReportFailure fieldName & " field", "The " & fieldName & " field is not visible after " & DEFAULT_WAIT_TIME & " seconds"
+            ReportTestFailure fieldName & " Field Interaction", fieldName & " field not found within " & ELEMENT_WAIT_TIMEOUT & " seconds"
         End If
     End Sub
-
-    ' Reporting helper
-    Private Sub ReportFailure(stepName, message)
-        Reporter.ReportEvent micFail, stepName, "❌ " & message
+    
+    Private Sub ClickElementWithValidation(elementDescriptor, elementName)
+        If Browser(browserDescriptor).Page(salesforcePageDescriptor).WebButton(elementDescriptor).Exist(ELEMENT_WAIT_TIMEOUT) Then
+            Browser(browserDescriptor).Page(salesforcePageDescriptor).WebButton(elementDescriptor).Click
+        Else
+            ReportTestFailure elementName & " Click", elementName & " not found"
+        End If
     End Sub
-
-    ' Business logic methods
-    Public Sub Login(username, password)
-        SetFieldIfExists oUsernameField, username, "Username"
-        SetFieldIfExists oPasswordField, password, "Password"
+    
+    ' ==============================================
+    ' Reporting Utilities
+    ' ==============================================
+    
+    Private Sub ReportTestFailure(stepName, message)
+        Reporter.ReportEvent micFail, stepName, "❌ FAILURE: " & message
+    End Sub
+    
+    Private Sub ReportTestWarning(stepName, message)
+        Reporter.ReportEvent micWarning, stepName, "⚠️ WARNING: " & message
+    End Sub
+    
+    Private Sub ReportTestInfo(stepName, message)
+        Reporter.ReportEvent micDone, stepName, "ℹ️ INFO: " & message
+    End Sub
+    
+    ' ==============================================
+    ' Business Logic Methods
+    ' ==============================================
+    
+    Public Sub LoginToSalesforce(username, password)
+        SetFieldValueWithValidation loginUsernameField, username, "Username"
+        SetFieldValueWithValidation loginPasswordField, password, "Password"
         ClickLoginButton
     End Sub
-
+    
     Private Sub ClickLoginButton()
-        If Browser(oBrowserDescriptor).Page(oPageDescriptor).WebButton(oLoginButton).Exist(DEFAULT_WAIT_TIME) Then
-            Browser(oBrowserDescriptor).Page(oPageDescriptor).WebButton(oLoginButton).Click
-        Else
-            ReportFailure "Login Button", "Login button not found"
-        End If
+        ClickElementWithValidation loginSubmitButton, "Login Button"
     End Sub
-
-    Public Sub NavigateToSection(sectionName)
+    
+    Public Sub NavigateToAppSection(sectionName)
         Select Case sectionName
             Case "Contacts"
-                NavigateToContacts
+                NavigateToContactsSection
             Case "Home"
-                ReportNavigation "Home selected"
+                ReportTestInfo "Navigation", "Home section selected"
             Case Else
-                ReportWarning "Navigation", "Invalid option: " & sectionName
+                ReportTestWarning "Navigation", "Unknown section: " & sectionName
         End Select
     End Sub
-
-    Private Sub NavigateToContacts()
-        AIUtil.SetContext Browser(oBrowserDescriptor)
+    
+    Private Sub NavigateToContactsSection()
+        AIUtil.SetContext Browser(browserDescriptor)
         AIUtil.FindTextBlock("Contacts", micFromTop, 1).Click
         AIUtil.FindTextBlock("New", micFromTop, 1).Click
     End Sub
-
-    Private Sub ReportNavigation(message)
-        Reporter.ReportEvent micDone, "Navigation", "������ " & message
+    
+    Public Sub CreateNewContactRecord(phoneNumber, salutation, lastName)
+        SetFieldValueWithValidation contactPhoneField, phoneNumber, "Phone"
+        SelectContactSalutation salutation
+        SetLastNameForContact lastName
+        SaveContactRecord
     End Sub
-
-    Private Sub ReportWarning(stepName, message)
-        Reporter.ReportEvent micWarning, stepName, "⚠️ " & message
-    End Sub
-
-    Public Sub CreateNewContact(phone, salutation, lastName)
-        SetFieldIfExists oPhoneField, phone, "Phone"
-        SelectSalutation salutation
-        AIUtil("text_box", "Last Name").SetText lastName
-        AIUtil("button", "Save").Click
-    End Sub
-
-    Private Sub SelectSalutation(salutation)
+    
+    Private Sub SelectContactSalutation(salutation)
         AIUtil("combobox", "Salutation").Click
         AIUtil.FindTextBlock(salutation).Click
     End Sub
-
-    ' API call method
-    Public Function CallApi(url, method, body)
-        Dim http
-        Set http = CreateObject("MSXML2.XMLHTTP")
-
+    
+    Private Sub SetLastNameForContact(lastName)
+        AIUtil("text_box", "Last Name").SetText lastName
+    End Sub
+    
+    Private Sub SaveContactRecord()
+        AIUtil("button", "Save").Click
+    End Sub
+    
+    ' ==============================================
+    ' API Test Utilities
+    ' ==============================================
+    
+    Public Function ExecuteApiRequest(endpointUrl, httpMethod, requestBody)
+        Dim httpRequest
+        Set httpRequest = CreateObject("MSXML2.XMLHTTP")
+        
         On Error Resume Next
-        http.Open method, url, False
-        http.setRequestHeader "Content-Type", "application/json"
-        http.Send body
-
+        httpRequest.Open httpMethod, endpointUrl, False
+        httpRequest.setRequestHeader "Content-Type", "application/json"
+        httpRequest.Send requestBody
+        
         If Err.Number <> 0 Then
-            Reporter.ReportEvent micFail, "API Call", "❌ Error calling API: " & Err.Description
-            Set CallApi = Nothing
-        Else
-            If http.Status >= 200 And http.Status < 300 Then
-                Reporter.ReportEvent micDone, "API Call", "✅ Success: " & http.Status
-                MsgBox http.responseText
-            Else
-                Reporter.ReportEvent micWarning, "API Call", "⚠️ API returned status: " & http.Status
-                MsgBox http.responseText
-            End If
-            Set CallApi = http
+            ReportTestFailure "API Request", "Error executing API call: " & Err.Description
+            Set ExecuteApiRequest = Nothing
+            Exit Function
         End If
+        
+        ProcessApiResponse httpRequest
+        
+        Set ExecuteApiRequest = httpRequest
         On Error GoTo 0
     End Function
-
+    
+    Private Sub ProcessApiResponse(httpRequest)
+        If httpRequest.Status >= 200 And httpRequest.Status < 300 Then
+            Reporter.ReportEvent micDone, "API Response", "✅ SUCCESS: Status " & httpRequest.Status
+            LogMessage "API Response: " & httpRequest.responseText
+        Else
+            Reporter.ReportEvent micWarning, "API Response", "⚠️ UNEXPECTED STATUS: " & httpRequest.Status
+            LogMessage "API Error Response: " & httpRequest.responseText
+        End If
+    End Sub
+    
+    Private Sub LogMessage(message)
+        ' Could be enhanced to write to external log file
+        MsgBox message
+    End Sub
 End Class
 
-' Test script
-Sub Test_Login_And_Create_Contact()
-    On Error Resume Next
-
-    Dim salesforce
-    Set salesforce = New Salesforce
-
-    salesforce.BeforeTest
-    salesforce.Login "jesus.bustamante@globant.com", "Testing@123"
-
-    Dim columns, data
-    columns = Array("salutation", "lastName", "phone")
-    Set data = ReadExcel(Environment.Value("TestDir") & "\Default.xlsx", columns, "Global")
-
-    If Not data Is Nothing Then
-        If data.Exists("salutation") And data.Exists("lastName") And data.Exists("phone") Then
-            If UBound(data("salutation")) >= 0 Then
-                salesforce.NavigateToSection "Contacts"
-                salesforce.CreateNewContact data("phone")(0), data("salutation")(0), data("lastName")(0)
-            End If
-        End If
-    End If
-
-    salesforce.AfterTest
-    On Error GoTo 0
-End Sub
-
-Sub Test_Call_Api_Endpoint()
-    On Error Resume Next
-
-    Dim salesforce
-    Set salesforce = New Salesforce
-
-    Dim response
-    Set response = salesforce.CallApi(RICKANDMORTY_API, "GET", "")
-
-    On Error GoTo 0
-End Sub
-
-Function ReadExcel(fileName, desiredColumns, sheetName)
-    Dim fso
-    Set fso = CreateObject("Scripting.FileSystemObject")
-
-    If Not fso.FileExists(fileName) Then
-        MsgBox "File does not exist: " & fileName, vbCritical
+' ==============================================
+' Test Data Utilities
+' ==============================================
+Function LoadTestDataFromExcel(filePath, requiredColumns, worksheetName)
+    Dim fileSystem
+    Set fileSystem = CreateObject("Scripting.FileSystemObject")
+    
+    If Not fileSystem.FileExists(filePath) Then
+        MsgBox "Test data file not found: " & filePath, vbCritical
         Exit Function
     End If
-
-    Dim dataDict, rowCount, i, j, colName
-    Set dataDict = CreateObject("Scripting.Dictionary")
-
-    DataTable.ImportSheet fileName, 1, sheetName
-    rowCount = DataTable.GetSheet(sheetName).GetRowCount()
-
-    Dim colCount, columnsInFile()
-    colCount = DataTable.GetSheet(sheetName).GetParameterCount()
-    ReDim columnsInFile(colCount - 1)
-    For i = 1 To colCount
-        columnsInFile(i - 1) = DataTable.GetSheet(sheetName).GetParameter(i).Name
+    
+    Dim testData, rowCount, columnIndex, rowIndex, columnName
+    Set testData = CreateObject("Scripting.Dictionary")
+    
+    DataTable.ImportSheet filePath, 1, worksheetName
+    rowCount = DataTable.GetSheet(worksheetName).GetRowCount()
+    
+    Dim allColumns, columnValues()
+    ReDim allColumns(DataTable.GetSheet(worksheetName).GetParameterCount() - 1)
+    
+    For columnIndex = 1 To DataTable.GetSheet(worksheetName).GetParameterCount()
+        allColumns(columnIndex - 1) = DataTable.GetSheet(worksheetName).GetParameter(columnIndex).Name
     Next
-
-    Dim values()
-    For i = 0 To UBound(desiredColumns)
-        colName = desiredColumns(i)
-        If IsInArray(colName, columnsInFile) Then
-            ReDim values(rowCount - 1)
-            For j = 1 To rowCount
-                DataTable.GetSheet(sheetName).SetCurrentRow(j)
-                values(j - 1) = DataTable.Value(colName, sheetName)
+    
+    For columnIndex = 0 To UBound(requiredColumns)
+        columnName = requiredColumns(columnIndex)
+        If ColumnExistsInArray(columnName, allColumns) Then
+            ReDim columnValues(rowCount - 1)
+            For rowIndex = 1 To rowCount
+                DataTable.GetSheet(worksheetName).SetCurrentRow(rowIndex)
+                columnValues(rowIndex - 1) = DataTable.Value(columnName, worksheetName)
             Next
-            dataDict.Add colName, values
+            testData.Add columnName, columnValues
         Else
-            MsgBox "Column '" & colName & "' does not exist in the file.", vbExclamation
+            MsgBox "Required column '" & columnName & "' missing in test data", vbExclamation
         End If
     Next
-
-    Set ReadExcel = dataDict
+    
+    Set LoadTestDataFromExcel = testData
 End Function
 
-Private Function IsInArray(valueToFind, arr)
+Private Function ColumnExistsInArray(columnName, columnsArray)
     Dim i
-    For i = LBound(arr) To UBound(arr)
-        If StrComp(arr(i), valueToFind, vbTextCompare) = 0 Then
-            IsInArray = True
+    For i = LBound(columnsArray) To UBound(columnsArray)
+        If StrComp(columnsArray(i), columnName, vbTextCompare) = 0 Then
+            ColumnExistsInArray = True
             Exit Function
         End If
     Next
-    IsInArray = False
+    ColumnExistsInArray = False
 End Function
 
-' Call Test_Login_And_Create_Contact()
-Call Test_Call_Api_Endpoint()
-Call Test_Login_And_Create_Contact()
+' ==============================================
+' Test Cases
+' ==============================================
+
+Sub Test_Salesforce_Login_And_Contact_Creation()
+    On Error Resume Next
+    
+    Dim salesforceAutomation
+    Set salesforceAutomation = New SalesforceAutomation
+    
+    ' Test setup
+    salesforceAutomation.TestSetup
+    
+    ' Execute login
+    salesforceAutomation.LoginToSalesforce "jesus.bustamante@globant.com", "Testing@123"
+    
+    ' Load test data
+    Dim testDataColumns, testData
+    testDataColumns = Array("salutation", "lastName", "phone")
+    Set testData = LoadTestDataFromExcel(Environment.Value("TestDir") & "\Default.xlsx", testDataColumns, "Global")
+    
+    ' Execute test steps if data is valid
+    If Not testData Is Nothing Then
+        If testData.Exists("salutation") And testData.Exists("lastName") And testData.Exists("phone") Then
+            If UBound(testData("salutation")) >= 0 Then
+                salesforceAutomation.NavigateToAppSection "Contacts"
+                salesforceAutomation.CreateNewContactRecord testData("phone")(0), testData("salutation")(0), testData("lastName")(0)
+            End If
+        End If
+    End If
+    
+    ' Test cleanup
+    salesforceAutomation.TestCleanup
+    On Error GoTo 0
+End Sub
+
+Sub Test_RickAndMorty_API_Endpoint()
+    On Error Resume Next
+    
+    Dim salesforceAutomation
+    Set salesforceAutomation = New SalesforceAutomation
+    
+    Dim apiResponse
+    Set apiResponse = salesforceAutomation.ExecuteApiRequest(RICKANDMORTY_API_ENDPOINT, "GET", "")
+    
+    On Error GoTo 0
+End Sub
+
+' ==============================================
+' Test Execution
+' ==============================================
+Call Test_RickAndMorty_API_Endpoint()
+Call Test_Salesforce_Login_And_Contact_Creation()
