@@ -1,7 +1,9 @@
-﻿' Constants for better maintainability
-Const SALESFORCE_URL = "https://globanttesting-dev-ed.develop.lightning.force.com/lightning"
-Const PAGE_LOAD_WAIT_TIME = 5
-Const DEFAULT_WAIT_TIME = 5
+﻿' Variables read from the Environment file for better maintainability
+Dim SALESFORCE_URL, RICKANDMORTY_API, PAGE_LOAD_WAIT_TIME, DEFAULT_WAIT_TIME
+SALESFORCE_URL = Environment.Value("SALESFORCE_URL")
+RICKANDMORTY_API = Environment.Value("RICKANDMORTY_API")
+PAGE_LOAD_WAIT_TIME = 5
+DEFAULT_WAIT_TIME = 5
 
 ' Main Salesforce automation class
 Class Salesforce
@@ -206,7 +208,7 @@ Sub Test_Call_Api_Endpoint()
     Set salesforce = New Salesforce
 
     Dim response
-    Set response = salesforce.CallApi("https://rickandmortyapi.com/api/character", "GET", "")
+    Set response = salesforce.CallApi(RICKANDMORTY_API, "GET", "")
 
     On Error GoTo 0
 End Sub
