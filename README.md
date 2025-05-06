@@ -54,6 +54,7 @@ This framework provides automated testing capabilities for Salesforce web applic
 
 ## Framework Structure
 
+```.bash
 📦 framework
 ├── 📜 Main.vbs - Core automation classes
 ├── 📜 Tests.vbs - Test cases
@@ -61,6 +62,7 @@ This framework provides automated testing capabilities for Salesforce web applic
 │ └── 📜 Default.xlsx - Test data
 └── 📂 environment
 └── 📜 config.ini - Environment variables
+```
 
 ## How to Use
 
@@ -85,7 +87,7 @@ Call Test_RickAndMorty_API_Endpoint()
 
 #### Test Data Management
 
-```vbs
+```.vbs
 Set testData = LoadTestDataFromExcel(filePath, columnsArray, sheetName)
 ```
 
@@ -98,7 +100,7 @@ Set testData = LoadTestDataFromExcel(filePath, columnsArray, sheetName)
 
 **To add new API tests** :
 
-```vbs
+```.vbs
 Dim apiResponse
 Set apiResponse = salesforceAutomation.ExecuteApiRequest(url, "GET|POST|PUT|DELETE", body)
 ```
@@ -132,7 +134,7 @@ Set apiResponse = salesforceAutomation.ExecuteApiRequest(url, "GET|POST|PUT|DELE
 | API call errors   | Check endpoint URL and network connectivity |
 | Test data issues  | Validate Excel file structure and content   |
 
-```vbs
+```.vbs
 ' Test: Create contact with data from Excel
 Sub Test_Create_Contact_With_Test_Data()
 Dim salesforce, testData
