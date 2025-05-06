@@ -205,12 +205,9 @@ Sub Test_Call_Api_Endpoint()
     Dim salesforce
     Set salesforce = New Salesforce
 
-    ' salesforce.BeforeTest
-
     Dim response
     Set response = salesforce.CallApi("https://rickandmortyapi.com/api/character", "GET", "")
 
-    ' salesforce.AfterTest
     On Error GoTo 0
 End Sub
 
@@ -267,4 +264,4 @@ End Function
 
 ' Call Test_Login_And_Create_Contact()
 Call Test_Call_Api_Endpoint()
-
+Call Test_Login_And_Create_Contact()
