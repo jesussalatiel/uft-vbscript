@@ -144,6 +144,32 @@ Class Salesforce
         AIUtil.FindTextBlock(salutation).Click
     End Sub
 
+    ' API call method
+    Public Function CallApi(url, method, body)
+        Dim http
+        Set http = CreateObject("MSXML2.XMLHTTP")
+
+        On Error Resume Next
+        http.Open method, url, False
+        http.setRequestHeader "Content-Type", "application/json"
+        http.Send body
+
+        If Err.Number <> 0 Then
+            Reporter.ReportEvent micFail, "API Call", "❌ Error calling API: " & Err.Description
+            Set CallApi = Nothing
+        Else
+            If http.Status >= 200 And http.Status < 300 Then
+                Reporter.ReportEvent micDone, "API Call", "✅ Success: " & http.Status
+                MsgBox http.responseText
+            Else
+                Reporter.ReportEvent micWarning, "API Call", "⚠️ API returned status: " & http.Status
+                MsgBox http.responseText
+            End If
+            Set CallApi = http
+        End If
+        On Error GoTo 0
+    End Function
+
 End Class
 
 ' Test script
@@ -170,6 +196,21 @@ Sub Test_Login_And_Create_Contact()
     End If
 
     salesforce.AfterTest
+    On Error GoTo 0
+End Sub
+
+Sub Test_Call_Api_Endpoint()
+    On Error Resume Next
+
+    Dim salesforce
+    Set salesforce = New Salesforce
+
+    ' salesforce.BeforeTest
+
+    Dim response
+    Set response = salesforce.CallApi("https://rickandmortyapi.com/api/character", "GET", "")
+
+    ' salesforce.AfterTest
     On Error GoTo 0
 End Sub
 
@@ -224,4 +265,6 @@ Private Function IsInArray(valueToFind, arr)
     IsInArray = False
 End Function
 
-Call Test_Login_And_Create_Contact()
+' Call Test_Login_And_Create_Contact()
+Call Test_Call_Api_Endpoint()
+
