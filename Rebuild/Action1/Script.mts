@@ -184,7 +184,7 @@ Sub Test_Login_And_Create_Contact()
 
     Dim columns, data
     columns = Array("salutation", "lastName", "phone")
-    Set data = ReadExcel(Environment.Value("TestDir") & "\Default.xlsx", columns)
+    Set data = ReadExcel(Environment.Value("TestDir") & "\Default.xlsx", columns, "Global")
 
     If Not data Is Nothing Then
         If data.Exists("salutation") And data.Exists("lastName") And data.Exists("phone") Then
@@ -211,7 +211,7 @@ Sub Test_Call_Api_Endpoint()
     On Error GoTo 0
 End Sub
 
-Function ReadExcel(fileName, desiredColumns)
+Function ReadExcel(fileName, desiredColumns, sheetName)
     Dim fso
     Set fso = CreateObject("Scripting.FileSystemObject")
 
@@ -223,14 +223,14 @@ Function ReadExcel(fileName, desiredColumns)
     Dim dataDict, rowCount, i, j, colName
     Set dataDict = CreateObject("Scripting.Dictionary")
 
-    DataTable.ImportSheet fileName, 1, "Global"
-    rowCount = DataTable.GetSheet("Global").GetRowCount()
+    DataTable.ImportSheet fileName, 1, sheetName
+    rowCount = DataTable.GetSheet(sheetName).GetRowCount()
 
     Dim colCount, columnsInFile()
-    colCount = DataTable.GetSheet("Global").GetParameterCount()
+    colCount = DataTable.GetSheet(sheetName).GetParameterCount()
     ReDim columnsInFile(colCount - 1)
     For i = 1 To colCount
-        columnsInFile(i - 1) = DataTable.GetSheet("Global").GetParameter(i).Name
+        columnsInFile(i - 1) = DataTable.GetSheet(sheetName).GetParameter(i).Name
     Next
 
     Dim values()
@@ -239,8 +239,8 @@ Function ReadExcel(fileName, desiredColumns)
         If IsInArray(colName, columnsInFile) Then
             ReDim values(rowCount - 1)
             For j = 1 To rowCount
-                DataTable.GetSheet("Global").SetCurrentRow(j)
-                values(j - 1) = DataTable.Value(colName, "Global")
+                DataTable.GetSheet(sheetName).SetCurrentRow(j)
+                values(j - 1) = DataTable.Value(colName, sheetName)
             Next
             dataDict.Add colName, values
         Else
