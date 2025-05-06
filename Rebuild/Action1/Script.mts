@@ -1,7 +1,7 @@
 ï»¿' Constants for better maintainability
 Const SALESFORCE_URL = "https://globanttesting-dev-ed.develop.lightning.force.com/lightning"
-Const PAGE_LOAD_WAIT_TIME = 15
-Const DEFAULT_WAIT_TIME = 15
+Const PAGE_LOAD_WAIT_TIME = 5
+Const DEFAULT_WAIT_TIME = 5
 
 ' Main Salesforce automation class
 Class Salesforce
@@ -125,7 +125,7 @@ Class Salesforce
     End Sub
     
     Private Sub ReportNavigation(message)
-        Reporter.ReportEvent micDone, "Navigation", "í ½í³Œ " & message
+        Reporter.ReportEvent micDone, "Navigation", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ " & message
     End Sub
     
     Private Sub ReportWarning(stepName, message)
@@ -144,22 +144,93 @@ Class Salesforce
         AIUtil.FindTextBlock("Dr.").Click
     End Sub
    
+Public Function ReadExcel(fileName, columnasDeseadas)
+    Dim fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    If Not fso.FileExists(fileName) Then
+        MsgBox "El archivo no existe: " & fileName, vbCritical
+        Exit Function
+    End If
+
+    Dim dataDict, rowCount, i, j, colName
+    Set dataDict = CreateObject("Scripting.Dictionary")
+
+    ' Importar hoja al DataTable Global
+    DataTable.ImportSheet fileName, 1, "Global"
+    rowCount = DataTable.GetSheet("Global").GetRowCount()
+
+    ' Obtener columnas existentes
+    Dim colCount, columnasEnArchivo()
+    colCount = DataTable.GetSheet("Global").GetParameterCount()
+    ReDim columnasEnArchivo(colCount - 1)
+    For i = 1 To colCount
+        columnasEnArchivo(i - 1) = DataTable.GetSheet("Global").GetParameter(i).Name
+    Next
+
+    ' Declarar array fuera del bucle
+    Dim values()
+
+    ' Procesar columnas solicitadas
+    For i = 0 To UBound(columnasDeseadas)
+        colName = columnasDeseadas(i)
+        If IsInArray(colName, columnasEnArchivo) Then
+            ReDim values(rowCount - 1)
+            For j = 1 To rowCount
+                DataTable.GetSheet("Global").SetCurrentRow(j)
+                values(j - 1) = DataTable.Value(colName, "Global")
+            Next
+            dataDict.Add colName, values
+        Else
+            MsgBox "La columna '" & colName & "' no existe en el archivo.", vbExclamation
+        End If
+    Next
+
+    Set ReadExcel = dataDict
+End Function
+
+' FunciÃ³n auxiliar para verificar si un valor estÃ¡ en un array
+Private Function IsInArray(valueToFind, arr)
+    Dim i
+    For i = LBound(arr) To UBound(arr)
+        If StrComp(arr(i), valueToFind, vbTextCompare) = 0 Then
+            IsInArray = True
+            Exit Function
+        End If
+    Next
+    IsInArray = False
+End Function
+
+
+
+   
 End Class
 
 ' Test script
 Sub Test_Login_And_Create_Contact()
-    Dim salesforce
-    Set salesforce = New Salesforce
+
+On Error Resume Next
+
+ Dim salesforce
+ Set salesforce = New Salesforce
+
+salesforce.BeforeTest
+salesforce.Login "jesus.bustamante@globant.com", "Testing@123"
+
+ Dim columnas
+    columnas = Array("salutation","lastName","phone") 
+    Set datos = salesforce.ReadExcel(Environment.Value("TestDir") & "\Default.xlsx", columnas)
+
+Dim i, rowCount
+rowCount = UBound(datos("salutation"))
+
+For i = 0 To rowCount
+	salesforce.NavigateToSection "Contacts"
+	salesforce.CreateNewContact  datos("phone")(i), datos("salutation")(i), datos("lastName")(i)
+Next
     
-    On Error Resume Next
-    salesforce.BeforeTest
-    salesforce.Login "jesus.bustamante@globant.com", "Testing@123"
-    salesforce.NavigateToSection "Contacts"
-    salesforce.CreateNewContact "9999999999", "Dr.", "Bugs Bunny"
+  salesforce.AfterTest
     
-    salesforce.AfterTest
-    
-  
     On Error GoTo 0
 End Sub
 
