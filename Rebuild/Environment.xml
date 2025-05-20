@@ -13,6 +13,6 @@
 	</Variable>
 	<Variable>
 		<Name>SALESFORCE_URL</Name>
-		<Value><![CDATA[https://globanttesting-dev-ed.develop.lightning.force.com/lightning]]></Value>
+		<Value><![CDATA[https://sanctuary--commondev.sandbox.my.salesforce.com/]]></Value>
 	</Variable>
 </Environment>

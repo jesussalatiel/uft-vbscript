@@ -49,7 +49,7 @@ Class SalesforceAutomation
     ' Browser Operations
     ' ==============================================
     Private Sub CloseAllBrowserInstances()
-        SystemUtil.CloseProcessByName "msedge.exe"
+        ' SystemUtil.CloseProcessByName "firefox.exe"
     End Sub
 
     Private Sub LaunchBrowserWithURL(url)
@@ -135,6 +135,8 @@ Class SalesforceAutomation
         Select Case sectionName
             Case "Contacts"
                 NavigateToContactsSection
+            Case "Contracts"
+                NavigateToContractsSection
             Case "Home"
                 ReportTestInfo "Navigation", "Home section selected"
             Case Else
@@ -146,6 +148,11 @@ Class SalesforceAutomation
         AIUtil.SetContext Browser(browserDescriptor)
         AIUtil.FindTextBlock("Contacts", micFromTop, 1).Click
         AIUtil.FindTextBlock("New", micFromTop, 1).Click
+    End Sub
+
+    Private Sub NavigateToContractsSection()
+        AIUtil.SetContext Browser(browserDescriptor)
+        AIUtil.FindTextBlock("Contracts", micFromTop, 1).Click
     End Sub
 
     Public Sub CreateNewContactRecord(phoneNumber, salutation, lastName)
@@ -269,7 +276,7 @@ Sub Test_Salesforce_Login_And_Contact_Creation()
     Set salesforceAutomation = New SalesforceAutomation
 
     salesforceAutomation.TestSetup
-    salesforceAutomation.LoginToSalesforce "jesus.bustamante@globant.com", "Testing@123"
+    salesforceAutomation.LoginToSalesforce "wiwev22814@jazipo.com", "Testing@123"
 
     Dim testDataColumns, testData
     testDataColumns = Array("salutation", "lastName", "phone")
@@ -297,6 +304,27 @@ Sub Test_Salesforce_Login_And_Contact_Creation()
     On Error GoTo 0
 End Sub
 
+Sub Test_View_Contracts_Associated_With_Assets()
+    On Error Resume Next
+
+    Dim salesforceAutomation
+    Set salesforceAutomation = New SalesforceAutomation
+
+    salesforceAutomation.TestSetup
+    salesforceAutomation.LoginToSalesforce "wiwev22814@jazipo.com", "Testing@123"
+    salesforceAutomation.NavigateToAppSection "Contracts"
+
+    ' Check if contracts and their related assets are visible
+    If Browser("Salesforce").Page("Salesforce Contracts").WebElement("text:=Asset").Exist(10) Then
+        Reporter.ReportEvent micPass, "Contract-Asset View", "Contracts associated with assets are visible."
+    Else
+        Reporter.ReportEvent micFail, "Contract-Asset View", "No asset-related records were found under contracts."
+    End If
+
+    salesforceAutomation.TestCleanup
+    On Error GoTo 0
+End Sub
+
 Sub Test_RickAndMorty_API_Endpoint()
     On Error Resume Next
     Dim salesforceAutomation
@@ -309,6 +337,7 @@ End Sub
 ' ==============================================
 ' Test Execution
 ' ==============================================
-Call Test_RickAndMorty_API_Endpoint()
-Call Test_Salesforce_Login_And_Contact_Creation()
+' Call Test_Salesforce_Login_And_Contact_Creation()
+Call Test_View_Contracts_Associated_With_Assets()
+' Call Test_RickAndMorty_API_Endpoint()
 

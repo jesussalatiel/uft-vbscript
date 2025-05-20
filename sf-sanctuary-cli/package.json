@@ -1,0 +1,26 @@
+{
+  "name": "sf-sanctuary-cli",
+  "version": "0.0.1",
+  "main": "dist/bin/main.js",
+  "bin": {
+    "mycli": "dist/bin/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/bin/main.ts",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.8.3"
+  }
+}
