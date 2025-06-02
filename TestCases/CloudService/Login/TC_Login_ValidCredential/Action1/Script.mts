@@ -276,7 +276,7 @@ Sub Test_Salesforce_Login_And_Contact_Creation()
     Set salesforceAutomation = New SalesforceAutomation
 
     salesforceAutomation.TestSetup
-    salesforceAutomation.LoginToSalesforce "wiwev22814@jazipo.com", "Testing@123"
+    salesforceAutomation.LoginToSalesforce "negos11044@dlbazi.com", "Testing@123"
 
     Dim testDataColumns, testData
     testDataColumns = Array("salutation", "lastName", "phone")
@@ -311,7 +311,7 @@ Sub Test_View_Contracts_Associated_With_Assets()
     Set salesforceAutomation = New SalesforceAutomation
 
     salesforceAutomation.TestSetup
-    salesforceAutomation.LoginToSalesforce "wiwev22814@jazipo.com", "Testing@123"
+    salesforceAutomation.LoginToSalesforce "negos11044@dlbazi.com", "Testing@123"
     salesforceAutomation.NavigateToAppSection "Contracts"
 
     ' Check if contracts and their related assets are visible
@@ -334,10 +334,46 @@ Sub Test_RickAndMorty_API_Endpoint()
     On Error GoTo 0
 End Sub
 
+Sub Test_Call_Sf_Sanctuary_Cli()
+	On Error Resume Next
+	' Dim shell, command, exec, output
+	
+	' Set shell = CreateObject("WScript.Shell")
+	' Print "Ruta del test actual: " & Environment.Value("TestDir")
+	' shell.CurrentDirectory = Environment.Value("TestDir")
+
+	' Set exec = shell.Exec("cmd /c ")
+	' output = exec.StdOut.ReadAll
+	' Print "Directorio actual: " & output
+	' command = "cmd /c cd sf-sanctuary-cli/ && npm run start -- users deactivate -i 005Pu00000FW5ggIAD"
+	
+	' Set shell = CreateObject("WScript.Shell")
+	' Set exec = shell.Exec(command)
+	
+	' Do While Not exec.StdOut.AtEndOfStream
+  	'	line = exec.StdOut.ReadLine()
+  	'	Print "Salida: " & line
+	' Loop
+	
+	'Do While Not exec.StdErr.AtEndOfStream
+  	'	line = exec.StdErr.ReadLine()
+  	'	Print "Error: " & line
+	'Loop
+	
+	Set exec = Nothing
+	Set shell = Nothing
+	On Error GoTo 0
+End Sub
+
+
 ' ==============================================
 ' Test Execution
 ' ==============================================
-' Call Test_Salesforce_Login_And_Contact_Creation()
-Call Test_View_Contracts_Associated_With_Assets()
+Call Test_Salesforce_Login_And_Contact_Creation()
+' Call Test_View_Contracts_Associated_With_Assets()
 ' Call Test_RickAndMorty_API_Endpoint()
+' Call Test_Call_Sf_Sanctuary_Cli()
+
+
+
 

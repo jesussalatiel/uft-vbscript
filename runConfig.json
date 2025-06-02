@@ -1,0 +1,10 @@
+{
+  "ReportPath": "C:\\parallelexecution",
+  "ReportName": "My Report Title",
+  "ParallelRuns": [
+    {
+      "Test": "C:\\Users\\jesus.bustamante\\Desktop\\uft-vbscript\\Rebuild",
+      "ReportSuffix": "API"
+    }
+  ]
+}
