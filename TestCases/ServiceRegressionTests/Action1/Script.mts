@@ -1,8 +1,15 @@
-﻿'Call LaunchBrowserWithURL(G_SALESFORCE_BASE_URL)
+﻿Dim browserMgr 
 
-Dim salesforce
-Set salesforce = CreateSalesforceTestGenerator()
-salesforce.TestSetup()
-salesforce.Login "jesus.busta", "myPassword123"
-salesforce.TestCleanup()
-'Call CloseAllBrowserInstances()
+
+Set browserMgr = CreateBrowserGenerator()
+browserMgr.LaunchBrowserWithURL G_SALESFORCE_BASE_URL, "edge"
+
+
+' Usa Descriptive Programming sin depender del repositorio
+Set oBrowser = browserMgr.GetSalesforceBrowser()
+Set oPage = oBrowser.Page("title:=Login \| Salesforce")
+Set oUsername = oPage.WebEdit("html id:=username")
+
+oUsername.Set "Hello"
+
+browserMgr.CloseAllBrowserInstances()
