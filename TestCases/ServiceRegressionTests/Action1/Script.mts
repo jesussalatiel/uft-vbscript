@@ -8,14 +8,8 @@
 Dim object
 Set object = CreateSalesforceTestGenerator()
 object.Init(oWebDriver)
-'object.Login "Julieta", "Jesus"
-object.EnterUsernameUsingAI "Julieta"
+object.Login "Julieta", "Jesus"
 oWebDriver.CloseAllBrowserInstances()
-
-
-' AIUtil.SetContext Browser("creationtime:=0")
-'AIUtil.SetContext Browser("creationtime:=0")
-'AIUtil("text_box", "Username").Type "asdsd"
 
 
 
