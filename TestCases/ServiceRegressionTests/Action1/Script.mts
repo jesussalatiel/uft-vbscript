@@ -1,15 +1,23 @@
-﻿Dim browserMgr 
+﻿Dim browserMgr, oBrowser, oPage 
+
+' WebDriver Init
+ Set oWebDriver = CreateWebDriver()
+ oWebDriver.LaunchSalesforcePlatform
+
+' Salesforce Management
+Dim object
+Set object = CreateSalesforceTestGenerator()
+object.Init(oWebDriver)
+'object.Login "Julieta", "Jesus"
+object.EnterUsernameUsingAI "Julieta"
+oWebDriver.CloseAllBrowserInstances()
 
 
-Set browserMgr = CreateBrowserGenerator()
-browserMgr.LaunchBrowserWithURL G_SALESFORCE_BASE_URL, "edge"
+' AIUtil.SetContext Browser("creationtime:=0")
+'AIUtil.SetContext Browser("creationtime:=0")
+'AIUtil("text_box", "Username").Type "asdsd"
 
 
-' Usa Descriptive Programming sin depender del repositorio
-Set oBrowser = browserMgr.GetSalesforceBrowser()
-Set oPage = oBrowser.Page("title:=Login \| Salesforce")
-Set oUsername = oPage.WebEdit("html id:=username")
 
-oUsername.Set "Hello"
 
-browserMgr.CloseAllBrowserInstances()
+
