@@ -1,15 +1,20 @@
-﻿Dim browserMgr, oBrowser, oPage 
+﻿' WebDriver Init
+Dim browser, app 
+Set browser = CreateWebDriver()
 
-' WebDriver Init
- Set oWebDriver = CreateWebDriver()
- oWebDriver.LaunchSalesforcePlatform
+' Start Browser
+browser.LaunchSalesforcePlatform
 
 ' Salesforce Management
-Dim object
-Set object = CreateSalesforceTestGenerator()
-object.Init(oWebDriver)
-object.Login "Julieta", "Jesus"
-oWebDriver.CloseAllBrowserInstances()
+Set app = Salesforce()
+app.Init(browser)
+app.Login G_USERNAME, G_PASSWORD
+app.Settings("Users")
+
+' Finish Browser 
+browser.CloseAllBrowserInstances()
+
+
 
 
 
